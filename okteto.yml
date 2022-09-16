@@ -1,0 +1,65 @@
+name: demo-basic-app
+
+# The build section defines how to build the images of your development environment
+# More info: https://www.okteto.com/docs/reference/manifest/#build
+build:
+
+  # You can use the following env vars to refer to this image in your deploy commands:
+  #  - OKTETO_BUILD_BACKEND_REGISTRY: image registry
+  #  - OKTETO_BUILD_BACKEND_REPOSITORY: image repo
+  #  - OKTETO_BUILD_BACKEND_IMAGE: image name
+  #  - OKTETO_BUILD_BACKEND_TAG: image tag
+  backend:
+    context: backend
+    dockerfile: Dockerfile
+    target: dev
+
+  # You can use the following env vars to refer to this image in your deploy commands:
+  #  - OKTETO_BUILD_FRONTEND_REGISTRY: image registry
+  #  - OKTETO_BUILD_FRONTEND_REPOSITORY: image repo
+  #  - OKTETO_BUILD_FRONTEND_IMAGE: image name
+  #  - OKTETO_BUILD_FRONTEND_TAG: image tag
+  frontend:
+    context: frontend
+    dockerfile: Dockerfile
+    target: dev
+    args:
+      - REACT_APP_BASE_API=https://backend-${OKTETO_GIT_BRANCH}-sfdumi.cloud.okteto.net
+
+# The deploy section defines how to deploy your development environment
+# More info: https://www.okteto.com/docs/reference/manifest/#deploy
+deploy:
+  commands:
+    - echo "okteto branch = ${OKTETO_GIT_BRANCH}"
+    - echo "okteto branch = ${DEPLOY_TEST}"
+  compose:
+    file: docker-compose.yml
+
+# The dependencies section defines other git repositories to be deployed as part of your development environment
+# More info: https://www.okteto.com/docs/reference/manifest/#dependencies
+# dependencies:
+#   - https://github.com/okteto/sample
+
+
+# The dev section defines how to activate a development container
+# More info: https://www.okteto.com/docs/reference/manifest/#dev
+dev:
+  backend:
+    command: sh
+    sync:
+      - backend:/usr/src/app/backend
+    forward:
+      - 3080:3080
+    environment:
+      - FRONTEND_URL=https://frontend-sfdumi.cloud.okteto.net
+      - POSTGRES_DB=bunny_books
+      - POSTGRES_HOST=db
+      - POSTGRES_PASSWORD=need-to-replace
+      - POSTGRES_USER=postgres
+  frontend:
+    command: sh
+    sync:
+      - frontend:/var/www/frontend
+    forward:
+      - 8080:8080
+
